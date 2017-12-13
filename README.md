@@ -36,7 +36,7 @@ python freeze.py --model_architecture dnn --model_size_info 128 128 128 --checkp
 
 Trained models (.pb files) for different neural network architectures such as DNN,
 CNN, Basic LSTM, LSTM, GRU, CRNN and DS-CNN shown in 
-this [arXiv paper]((https://arxiv.org/pdf/1711.07128.pdf) are added in 
+this [arXiv paper](https://arxiv.org/pdf/1711.07128.pdf) are added in 
 [Pretrained_models](Pretrained_models).
 To run an audio file through the trained model (e.g. a DNN) and get top prediction, 
 run:
