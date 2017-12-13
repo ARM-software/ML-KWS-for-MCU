@@ -1,0 +1,34 @@
+#DNN Models
+python train.py --model_architecture dnn --model_size_info 144 144 144 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 40 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/DNN/DNN1/retrain_logs --train_dir work/DNN/DNN1/training 
+python train.py --model_architecture dnn --model_size_info 256 256 256 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 40 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/DNN/DNN2/retrain_logs --train_dir work/DNN/DNN2/training
+python train.py --model_architecture dnn --model_size_info 436 436 436 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 40 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/DNN/DNN3/retrain_logs --train_dir work/DNN/DNN3/training 
+
+#CNN Models
+python train.py --model_architecture cnn --model_size_info 28 10 4 1 1 30 10 4 2 1 16 128 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/CNN/CNN1/retrain_logs --train_dir work/CNN/CNN1/training 
+python train.py --model_architecture cnn --model_size_info 64 10 4 1 1 48 10 4 2 1 16 128 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/CNN/CNN2/retrain_logs --train_dir work/CNN/CNN2/training 
+python train.py --model_architecture cnn --model_size_info 60 10 4 1 1 76 10 4 2 1 58 128 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/CNN/CNN3/retrain_logs --train_dir work/CNN/CNN3/training 
+
+#Basic LSTM Models
+python train.py --model_architecture basic_lstm --model_size_info 118 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/Basic_LSTM/Basic_LSTM1/retrain_logs --train_dir work/Basic_LSTM/Basic_LSTM1/training 
+python train.py --model_architecture basic_lstm --model_size_info 214 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/Basic_LSTM/Basic_LSTM2/retrain_logs --train_dir work/Basic_LSTM/Basic_LSTM2/training 
+python train.py --model_architecture basic_lstm --model_size_info 344 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/Basic_LSTM/Basic_LSTM3/retrain_logs --train_dir work/Basic_LSTM/Basic_LSTM3/training 
+
+#LSTM Models
+python train.py --model_architecture lstm --model_size_info 98 144 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 40 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/LSTM/LSTM1/retrain_logs --train_dir work/LSTM/LSTM1/training 
+python train.py --model_architecture lstm --model_size_info 130 280 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/LSTM/LSTM2/retrain_logs --train_dir work/LSTM/LSTM2/training 
+python train.py --model_architecture lstm --model_size_info 188 500 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/LSTM/LSTM3/retrain_logs --train_dir work/LSTM/LSTM3/training 
+
+#GRU Models
+python train.py --model_architecture gru --model_size_info 1 154 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 40 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/GRU/GRU1/retrain_logs --train_dir work/GRU/GRU1/training 
+python train.py --model_architecture gru --model_size_info 1 250 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/GRU/GRU2/retrain_logs --train_dir work/GRU/GRU2/training 
+python train.py --model_architecture gru --model_size_info 1 400 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/GRU/GRU3/retrain_logs --train_dir work/GRU/GRU3/training 
+
+#CRNN Models
+python train.py --model_architecture crnn --model_size_info 48 10 4 2 2 2 60 84 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/CRNN/CRNN1/retrain_logs --train_dir work/CRNN/CRNN1/training 
+python train.py --model_architecture crnn --model_size_info 128 10 4 2 2 2 76 164 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/CRNN/CRNN2/retrain_logs --train_dir work/CRNN/CRNN2/training 
+python train.py --model_architecture crnn --model_size_info 100 10 4 2 1 2 136 188 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/CRNN/CRNN3/retrain_logs --train_dir work/CRNN/CRNN3/training 
+
+#DS-CNN Models
+python train.py --model_architecture ds_cnn --model_size_info 5 64 10 4 2 2 64 3 3 1 1 64 3 3 1 1 64 3 3 1 1 64 3 3 1 1 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/DS_CNN/DS_CNN1/retrain_logs --train_dir work/DS_CNN/DS_CNN1/training 
+python train.py --model_architecture ds_cnn --model_size_info 5 172 10 4 2 1 172 3 3 2 2 172 3 3 1 1 172 3 3 1 1 172 3 3 1 1 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/DS_CNN/DS_CNN2/retrain_logs --train_dir work/DS_CNN/DS_CNN2/training 
+python train.py --model_architecture ds_cnn --model_size_info 6 276 10 4 2 1 276 3 3 2 2 276 3 3 1 1 276 3 3 1 1 276 3 3 1 1 276 3 3 1 1 --dct_coefficient_count 10 --window_size_ms 40 --window_stride_ms 20 --learning_rate 0.0005,0.0001,0.00002 --how_many_training_steps 10000,10000,10000 --summaries_dir work/DS_CNN/DS_CNN3/retrain_logs --train_dir work/DS_CNN/DS_CNN3/training 
