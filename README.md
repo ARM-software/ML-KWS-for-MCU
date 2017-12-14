@@ -2,7 +2,7 @@
 
 This repository consists of the tensorflow models and training scripts used 
 in the paper: 
-[Hello Edge: Keyword spotting Microcontrollers](https://arxiv.org/pdf/1711.07128.pdf). 
+[Hello Edge: Keyword spotting on Microcontrollers](https://arxiv.org/pdf/1711.07128.pdf). 
 The scripts are adapted from [Tensorflow examples](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/examples/speech_commands) 
 and some are repeated here for the sake of making these scripts self-contained.
 
@@ -37,7 +37,12 @@ python freeze.py --model_architecture dnn --model_size_info 128 128 128 --checkp
 Trained models (.pb files) for different neural network architectures such as DNN,
 CNN, Basic LSTM, LSTM, GRU, CRNN and DS-CNN shown in 
 this [arXiv paper](https://arxiv.org/pdf/1711.07128.pdf) are added in 
-[Pretrained_models](Pretrained_models).
+[Pretrained_models](Pretrained_models). Accuracy of the models on validation set, 
+their memory requirements and operations per inference are also summarized in the 
+following table.
+
+<img src="https://user-images.githubusercontent.com/34459978/34018008-0451ef9a-e0dd-11e7-9661-59e4fb4a8347.png">
+
 To run an audio file through the trained model (e.g. a DNN) and get top prediction, 
 run:
 ```
