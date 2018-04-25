@@ -20,17 +20,18 @@
  * Description: Example code for running keyword spotting on Cortex-M boards
  */
 
-#include "kws.h"
+#include "kws_ds_cnn.h"
 #include "wav_data.h"
 
+int16_t audio_buffer[16000]=WAVE_DATA;
+
 Timer T;
-Serial pc(SERIAL_TX, SERIAL_RX);
+Serial pc(USBTX, USBRX);
+
 int main()
 {
-  int16_t audio_buffer[16000]=WAVE_DATA;
-  q7_t scratch_buffer[SCRATCH_BUFFER_SIZE];
   char output_class[12][8] = {"Silence", "Unknown","yes","no","up","down","left","right","on","off","stop","go"};
-  KWS kws(audio_buffer,scratch_buffer);
+  KWS_DS_CNN kws(audio_buffer);
 
   T.start();
   int start=T.read_us();
@@ -38,7 +39,7 @@ int main()
   kws.classify();	  //classify using dnn
   int end=T.read_us();
   T.stop();
-  int max_ind = kws.get_top_detection(kws.output);
+  int max_ind = kws.get_top_class(kws.output);
   pc.printf("Total time : %d us\r\n",end-start);
   printf("Detected %s (%d%%)\r\n",output_class[max_ind],((int)kws.output[max_ind]*100/128));
 

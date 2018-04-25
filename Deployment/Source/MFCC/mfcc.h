@@ -16,32 +16,25 @@
  * limitations under the License.
  */
 
-#ifndef KWS_MFCC_H
-#define KWS_MFCC_H
+#ifndef __KWS_MFCC_H__
+#define __KWS_MFCC_H__
 
 #include "arm_math.h"
 #include "string.h"
 
 #define SAMP_FREQ 16000
-#define FRAME_SHIFT_MS 40
-#define FRAME_LENGTH_MS 40
-
 #define NUM_FBANK_BINS 40
-#define NUM_MFCC_COEFFS 10
 #define MEL_LOW_FREQ 20
 #define MEL_HIGH_FREQ 4000
-
-#define FRAME_SHIFT ((int16_t)(SAMP_FREQ * 0.001 * FRAME_SHIFT_MS))
-#define FRAME_LEN ((int16_t)(SAMP_FREQ * 0.001 * FRAME_LENGTH_MS))
-
-#define NUM_FRAMES 25
-#define MFCC_BUFFER_SIZE (NUM_FRAMES*NUM_MFCC_COEFFS)
 
 #define M_2PI 6.283185307179586476925286766559005
 
 class MFCC{
   private:
-    int32_t frame_len_padded;
+    int num_mfcc_features;
+    int frame_len;
+    int frame_len_padded;
+    int mfcc_dec_bits;
     float * frame;
     float * buffer;
     float * mel_energies;
@@ -53,7 +46,7 @@ class MFCC{
     arm_rfft_fast_instance_f32 * rfft;
     float * create_dct_matrix(int32_t input_length, int32_t coefficient_count); 
     float ** create_mel_fbank();
-
+ 
     static inline float InverseMelScale(float mel_freq) {
       return 700.0f * (expf (mel_freq / 1127.0f) - 1.0f);
     }
@@ -63,9 +56,9 @@ class MFCC{
     }
 
   public:
-    MFCC();
+    MFCC(int num_mfcc_features, int frame_len, int mfcc_dec_bits);
     ~MFCC();
-    void mfcc_compute(const int16_t* data, uint16_t dec_bits, int8_t* mfcc_out);
+    void mfcc_compute(const int16_t* data, q7_t* mfcc_out);
 };
 
 #endif

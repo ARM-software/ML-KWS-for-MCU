@@ -47,16 +47,24 @@ const q7_t DNN::ip3_bias[IP3_OUT_DIM]=IP3_BIAS;
 const q7_t DNN::ip4_wt[IP4_WT_DIM]=IP4_WT;
 const q7_t DNN::ip4_bias[OUT_DIM]=IP4_BIAS;
 
-DNN::DNN(q7_t* scratch_pad)
+DNN::DNN()
 {
+  scratch_pad = new q7_t[SCRATCH_BUFFER_SIZE];
   ip1_out = scratch_pad;
   ip2_out = ip1_out+IP1_OUT_DIM;
   ip3_out = ip1_out;
   vec_buffer = (q15_t*)(ip1_out+IP1_OUT_DIM+IP2_OUT_DIM);
+  frame_len = FRAME_LEN;
+  frame_shift = FRAME_SHIFT;
+  num_mfcc_features = NUM_MFCC_COEFFS;
+  num_frames = NUM_FRAMES;
+  num_out_classes = OUT_DIM;
+  in_dec_bits = MFCC_DEC_BITS;
 }
 
 DNN::~DNN()
 {
+  delete scratch_pad;
 }
 
 void DNN::run_nn(q7_t* in_data, q7_t* out_data)

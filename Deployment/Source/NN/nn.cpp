@@ -16,43 +16,32 @@
  * limitations under the License.
  */
 
-#ifndef __KWS_H__
-#define __KWS_H__
-
-#include "mbed.h"
 #include "nn.h"
-#include "mfcc.h"
 
-class KWS{
+NN::~NN() {
+}
 
-public:
-  ~KWS();
-  void extract_features();
-  void classify();
-  void average_predictions();
-  int get_top_class(q7_t* prediction);
-  int16_t* audio_buffer;
-  q7_t *mfcc_buffer;
-  q7_t *output;
-  q7_t *predictions;
-  q7_t *averaged_output;
-  int num_frames;
-  int num_mfcc_features;
-  int frame_len;
-  int frame_shift;
-  int num_out_classes;
-  int audio_block_size;
-  int audio_buffer_size;
+int NN::get_frame_len() {
+  return frame_len;
+}
 
-protected:
-  KWS();
-  void init_kws();
-  MFCC *mfcc;
-  NN *nn;
-  int mfcc_buffer_size;
-  int recording_win;
-  int sliding_window_len;
-  
-};
+int NN::get_frame_shift() {
+  return frame_shift;
+}
 
-#endif
+int NN::get_num_mfcc_features() {
+  return num_mfcc_features;
+}
+
+int NN::get_num_frames() {
+  return num_frames;
+}
+
+int NN::get_num_out_classes() {
+  return num_out_classes;
+}
+
+int NN::get_in_dec_bits() {
+  return in_dec_bits;
+}
+

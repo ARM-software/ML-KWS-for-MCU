@@ -24,17 +24,17 @@ mbed deploy
 ```
 Compile the code for the mbed board (for example NUCLEO\_F411RE).
 ```bash
-mbed compile -m NUCLEO_F411RE -t GCC_ARM \
-  --source . --source ../Source --source ../Examples/simple_test \
+mbed compile -m NUCLEO_F411RE -t GCC_ARM --source . \
+  --source ../Source/KWS --source ../Source/NN --source ../Source/MFCC \
+  --source ../Source/local_NN --source ../Examples/simple_test \
   --source ../CMSIS_5/CMSIS/NN/Include --source ../CMSIS_5/CMSIS/NN/Source \
   --source ../CMSIS_5/CMSIS/DSP/Include --source ../CMSIS_5/CMSIS/DSP/Source \
   --source ../CMSIS_5/CMSIS/Core/Include \
-  --profile ../release_O3.json \
-  -j 8 
+  --profile ../release_O3.json -j 8 
 ```
 Copy the binary (.bin) to the board (Make sure the board is detected and mounted). Open a serial terminal (e.g. putty or minicom) and see the final classification output on screen. 
 ```bash
-cp ./BUILD/NUCLEO_F411RE/GCC_ARM/kws_simple_test.bin /media/ubuntu/NODE_F411RE/
+cp ./BUILD/NUCLEO_F411RE/GCC_ARM/kws_simple_test.bin /media/<user>/NODE_F411RE/
 sudo minicom
 ```
 ## Run KWS inference on live audio on [STM32F746NG development kit](http://www.st.com/en/evaluation-tools/32f746gdiscovery.html)
@@ -49,8 +49,7 @@ mbed compile -m DISCO_F746NG -t GCC_ARM \
   --source ../CMSIS_5/CMSIS/NN/Include --source ../CMSIS_5/CMSIS/NN/Source \
   --source ../CMSIS_5/CMSIS/DSP/Include --source ../CMSIS_5/CMSIS/DSP/Source \
   --source ../CMSIS_5/CMSIS/Core/Include \
-  --profile ../release_O3.json \
-  -j 8
-cp ./BUILD/DISCO_F746NG/GCC_ARM/kws_realtime_test.bin /media/ubuntu/DIS_F746NG/
+  --profile ../release_O3.json -j 8
+cp ./BUILD/DISCO_F746NG/GCC_ARM/kws_realtime_test.bin /media/<user>/DIS_F746NG/
 ```
 **Note:** The examples provided use floating point operations for MFCC feature extraction, but it should be possible to convert them to fixed-point operations for deploying on microcontrollers that do not have dedicated floating point units.

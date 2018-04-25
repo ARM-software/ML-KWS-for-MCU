@@ -16,43 +16,28 @@
  * limitations under the License.
  */
 
-#ifndef __KWS_H__
-#define __KWS_H__
+#ifndef __KWS_F746NG_H__
+#define __KWS_F746NG_H__
 
-#include "mbed.h"
-#include "nn.h"
-#include "mfcc.h"
+#include "AUDIO_DISCO_F746NG.h"
+#include "kws_ds_cnn.h"
+//#include "kws_dnn.h"
 
-class KWS{
-
+// Change the parent class to KWS_DNN to switch to DNN model
+//class KWS_F746NG : public KWS_DNN {
+class KWS_F746NG : public KWS_DS_CNN {
 public:
-  ~KWS();
-  void extract_features();
-  void classify();
-  void average_predictions();
-  int get_top_class(q7_t* prediction);
-  int16_t* audio_buffer;
-  q7_t *mfcc_buffer;
-  q7_t *output;
-  q7_t *predictions;
-  q7_t *averaged_output;
-  int num_frames;
-  int num_mfcc_features;
-  int frame_len;
-  int frame_shift;
-  int num_out_classes;
-  int audio_block_size;
-  int audio_buffer_size;
+  KWS_F746NG(int recording_win, int sliding_window_len);
+  ~KWS_F746NG();
+  void start_kws();
+  void set_volume(int vol);
+  int16_t* audio_buffer_in;
+  //for debugging: microphone to headphone loopback
+  int16_t* audio_buffer_out; 
 
-protected:
-  KWS();
-  void init_kws();
-  MFCC *mfcc;
-  NN *nn;
-  int mfcc_buffer_size;
-  int recording_win;
-  int sliding_window_len;
-  
+private:
+  AUDIO_DISCO_F746NG audio;
+
 };
 
 #endif

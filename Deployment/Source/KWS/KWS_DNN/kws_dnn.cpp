@@ -16,43 +16,28 @@
  * limitations under the License.
  */
 
-#ifndef __KWS_H__
-#define __KWS_H__
 
-#include "mbed.h"
-#include "nn.h"
-#include "mfcc.h"
+#include "kws_dnn.h"
 
-class KWS{
+KWS_DNN::KWS_DNN(int record_win, int sliding_win_len)
+{
+  nn = new DNN();
+  recording_win = record_win;
+  sliding_window_len = sliding_win_len;
+  init_kws();
+}
 
-public:
-  ~KWS();
-  void extract_features();
-  void classify();
-  void average_predictions();
-  int get_top_class(q7_t* prediction);
-  int16_t* audio_buffer;
-  q7_t *mfcc_buffer;
-  q7_t *output;
-  q7_t *predictions;
-  q7_t *averaged_output;
-  int num_frames;
-  int num_mfcc_features;
-  int frame_len;
-  int frame_shift;
-  int num_out_classes;
-  int audio_block_size;
-  int audio_buffer_size;
+KWS_DNN::KWS_DNN(int16_t* audio_data_buffer)
+{
+  nn = new DNN();
+  audio_buffer = audio_data_buffer;
+  recording_win = nn->get_num_frames();
+  sliding_window_len = 1;
+  init_kws();
+}
 
-protected:
-  KWS();
-  void init_kws();
-  MFCC *mfcc;
-  NN *nn;
-  int mfcc_buffer_size;
-  int recording_win;
-  int sliding_window_len;
-  
-};
+KWS_DNN::~KWS_DNN()
+{
+  delete nn;
+}
 
-#endif

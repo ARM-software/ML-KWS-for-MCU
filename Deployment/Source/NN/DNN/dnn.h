@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-#ifndef KWS_DNN_H
-#define KWS_DNN_H
+#ifndef __DNN_H__
+#define __DNN_H__
 
+#include "nn.h"
 #include "dnn_weights.h"
 #include "arm_nnfunctions.h"
 #include "arm_math.h"
-#include "mfcc.h"
 
 /* Network Structure 
 
@@ -40,6 +40,16 @@
 
 */
 
+#define SAMP_FREQ 16000
+#define MFCC_DEC_BITS 2
+#define FRAME_SHIFT_MS 40
+#define FRAME_SHIFT ((int16_t)(SAMP_FREQ * 0.001 * FRAME_SHIFT_MS))
+#define NUM_FRAMES 25
+#define NUM_MFCC_COEFFS 10
+#define MFCC_BUFFER_SIZE (NUM_FRAMES*NUM_MFCC_COEFFS)
+#define FRAME_LEN_MS 40
+#define FRAME_LEN ((int16_t)(SAMP_FREQ * 0.001 * FRAME_LEN_MS))
+
 #define IN_DIM (NUM_FRAMES*NUM_MFCC_COEFFS)
 #define OUT_DIM 12
 #define IP1_OUT_DIM 144
@@ -49,16 +59,17 @@
 #define IP2_WT_DIM (IP2_OUT_DIM*IP1_OUT_DIM)
 #define IP3_WT_DIM (IP3_OUT_DIM*IP2_OUT_DIM)
 #define IP4_WT_DIM (OUT_DIM*IP3_OUT_DIM)
-#define SCRATCH_BUFFER_SIZE (IN_DIM+3*IP1_OUT_DIM)
+#define SCRATCH_BUFFER_SIZE (2*(IN_DIM+3*IP1_OUT_DIM))
 
-class DNN {
+class DNN : public NN {
 
   public:
-    DNN(q7_t* scratch_pad);
+    DNN();
     ~DNN();
     void run_nn(q7_t* in_data, q7_t* out_data);
 
   private:
+    q7_t* scratch_pad;
     q7_t* ip1_out;
     q7_t* ip2_out;
     q7_t* ip3_out;

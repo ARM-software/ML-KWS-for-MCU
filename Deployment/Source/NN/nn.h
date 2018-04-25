@@ -16,43 +16,31 @@
  * limitations under the License.
  */
 
-#ifndef __KWS_H__
-#define __KWS_H__
+#ifndef __NN_H__
+#define __NN_H__
 
-#include "mbed.h"
-#include "nn.h"
-#include "mfcc.h"
+#include "arm_nnfunctions.h"
 
-class KWS{
+class NN {
 
-public:
-  ~KWS();
-  void extract_features();
-  void classify();
-  void average_predictions();
-  int get_top_class(q7_t* prediction);
-  int16_t* audio_buffer;
-  q7_t *mfcc_buffer;
-  q7_t *output;
-  q7_t *predictions;
-  q7_t *averaged_output;
-  int num_frames;
-  int num_mfcc_features;
-  int frame_len;
-  int frame_shift;
-  int num_out_classes;
-  int audio_block_size;
-  int audio_buffer_size;
+  public:
+    virtual ~NN();
+    virtual void run_nn(q7_t* in_data, q7_t* out_data)=0;
+    int get_num_mfcc_features();
+    int get_num_frames();
+    int get_frame_len();
+    int get_frame_shift();
+    int get_num_out_classes();
+    int get_in_dec_bits();
 
-protected:
-  KWS();
-  void init_kws();
-  MFCC *mfcc;
-  NN *nn;
-  int mfcc_buffer_size;
-  int recording_win;
-  int sliding_window_len;
-  
+  protected:
+    int frame_len;
+    int frame_shift;
+    int num_mfcc_features;
+    int num_frames;
+    int num_out_classes;
+    int in_dec_bits;
+
 };
 
 #endif

@@ -18,62 +18,68 @@
 
 /*
  * Description: Keyword spotting example code using MFCC feature extraction
- * and DNN model. 
+ * and neural network. 
  */
 
 #include "kws.h"
-#include "string.h"
 
-KWS::KWS(int16_t* audio_buffer, q7_t* scratch_buffer)
-: audio_buffer(audio_buffer)
+KWS::KWS()
 {
-  mfcc = new MFCC;
-  nn = new DNN(scratch_buffer);
 }
 
 KWS::~KWS()
 {
-  delete mfcc;
   delete nn;
+  delete mfcc;
+  delete mfcc_buffer;
+  delete output;
+  delete predictions;
+  delete averaged_output;
 }
 
-void KWS::extract_features()
+void KWS::init_kws()
 {
-  int32_t mfcc_buffer_head=0;
-  for (uint16_t f = 0; f < NUM_FRAMES; f++) {
-    mfcc->mfcc_compute(audio_buffer+(f*FRAME_SHIFT),2,&mfcc_buffer[mfcc_buffer_head]);
-    mfcc_buffer_head += NUM_MFCC_COEFFS;
+  num_mfcc_features = nn->get_num_mfcc_features();
+  num_frames = nn->get_num_frames();
+  frame_len = nn->get_frame_len();
+  frame_shift = nn->get_frame_shift();
+  int mfcc_dec_bits = nn->get_in_dec_bits();
+  num_out_classes = nn->get_num_out_classes();
+  mfcc = new MFCC(num_mfcc_features, frame_len, mfcc_dec_bits);
+  mfcc_buffer = new q7_t[num_frames*num_mfcc_features];
+  output = new q7_t[num_out_classes];
+  averaged_output = new q7_t[num_out_classes];
+  predictions = new q7_t[sliding_window_len*num_out_classes];
+  audio_block_size = recording_win*frame_shift;
+  audio_buffer_size = audio_block_size + frame_len - frame_shift;
+}
+
+void KWS::extract_features() 
+{
+  if(num_frames>recording_win) {
+    //move old features left 
+    memmove(mfcc_buffer,mfcc_buffer+(recording_win*num_mfcc_features),(num_frames-recording_win)*num_mfcc_features);
   }
-}
-
-/* This overloaded function is used in streaming audio case */
-void KWS::extract_features(uint16_t num_frames) 
-{
-  //move old features left 
-  memmove(mfcc_buffer,mfcc_buffer+(num_frames*NUM_MFCC_COEFFS),(NUM_FRAMES-num_frames)*NUM_MFCC_COEFFS);
   //compute features only for the newly recorded audio
-  int32_t mfcc_buffer_head = (NUM_FRAMES-num_frames)*NUM_MFCC_COEFFS; 
-  for (uint16_t f = 0; f < num_frames; f++) {
-    mfcc->mfcc_compute(audio_buffer+(f*FRAME_SHIFT),2,&mfcc_buffer[mfcc_buffer_head]);
-    mfcc_buffer_head += NUM_MFCC_COEFFS;
+  int32_t mfcc_buffer_head = (num_frames-recording_win)*num_mfcc_features; 
+  for (uint16_t f = 0; f < recording_win; f++) {
+    mfcc->mfcc_compute(audio_buffer+(f*frame_shift),&mfcc_buffer[mfcc_buffer_head]);
+    mfcc_buffer_head += num_mfcc_features;
   }
 }
 
 void KWS::classify()
 {
   nn->run_nn(mfcc_buffer, output);
-
   // Softmax
-  arm_softmax_q7(output,OUT_DIM,output);
-
-  //do any post processing here
+  arm_softmax_q7(output,num_out_classes,output);
 }
 
-int KWS::get_top_detection(q7_t* prediction)
+int KWS::get_top_class(q7_t* prediction)
 {
   int max_ind=0;
   int max_val=-128;
-  for(int i=0;i<OUT_DIM;i++) {
+  for(int i=0;i<num_out_classes;i++) {
     if(max_val<prediction[i]) {
       max_val = prediction[i];
       max_ind = i;
@@ -82,22 +88,19 @@ int KWS::get_top_detection(q7_t* prediction)
   return max_ind;
 }
 
-void KWS::average_predictions(int window_len)
+void KWS::average_predictions()
 {
   //shift right old predictions 
-  for(int i=window_len-1;i>0;i--) {
-    for(int j=0;j<OUT_DIM;j++)
-      predictions[i][j]=predictions[i-1][j];
-  }
+  arm_copy_q7((q7_t *)predictions, (q7_t *)(predictions+num_out_classes), (sliding_window_len-1)*num_out_classes);
   //add new predictions
-  for(int j=0;j<OUT_DIM;j++)
-    predictions[0][j]=output[j];
+  arm_copy_q7((q7_t *)output, (q7_t *)predictions, num_out_classes);
   //compute averages
   int sum;
-  for(int j=0;j<OUT_DIM;j++) {
+  for(int j=0;j<num_out_classes;j++) {
     sum=0;
-    for(int i=0;i<window_len;i++) 
-      sum += predictions[i][j];
-    averaged_output[j] = (q7_t)(sum/window_len);
+    for(int i=0;i<sliding_window_len;i++) 
+      sum += predictions[i*num_out_classes+j];
+    averaged_output[j] = (q7_t)(sum/sliding_window_len);
   }   
 }
+  

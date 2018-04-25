@@ -25,19 +25,23 @@
 #include "mfcc.h"
 #include "float.h"
 
-MFCC::MFCC() {
+MFCC::MFCC(int num_mfcc_features, int frame_len, int mfcc_dec_bits) 
+:num_mfcc_features(num_mfcc_features), 
+ frame_len(frame_len), 
+ mfcc_dec_bits(mfcc_dec_bits)
+{
 
   // Round-up to nearest power of 2.
-  frame_len_padded = pow(2,ceil((log(FRAME_LEN)/log(2))));
+  frame_len_padded = pow(2,ceil((log(frame_len)/log(2))));
 
   frame = new float[frame_len_padded];
   buffer = new float[frame_len_padded];
   mel_energies = new float[NUM_FBANK_BINS];
 
   //create window function
-  window_func = new float[FRAME_LEN];
-  for (int i = 0; i < FRAME_LEN; i++)
-    window_func[i] = 0.5 - 0.5*cos(M_2PI * ((float)i) / (FRAME_LEN));
+  window_func = new float[frame_len];
+  for (int i = 0; i < frame_len; i++)
+    window_func[i] = 0.5 - 0.5*cos(M_2PI * ((float)i) / (frame_len));
 
   //create mel filterbank
   fbank_filter_first = new int32_t[NUM_FBANK_BINS];
@@ -45,7 +49,7 @@ MFCC::MFCC() {
   mel_fbank = create_mel_fbank();
   
   //create DCT matrix
-  dct_matrix = create_dct_matrix(NUM_FBANK_BINS, NUM_MFCC_COEFFS);
+  dct_matrix = create_dct_matrix(NUM_FBANK_BINS, num_mfcc_features);
 
   //initialize FFT
   rfft = new arm_rfft_fast_instance_f32;
@@ -63,7 +67,8 @@ MFCC::~MFCC() {
   delete []dct_matrix;
   delete rfft;
   for(int i=0;i<NUM_FBANK_BINS;i++)
-    delete []mel_fbank;
+    delete mel_fbank[i];
+  delete mel_fbank;
 }
 
 float * MFCC::create_dct_matrix(int32_t input_length, int32_t coefficient_count) {
@@ -135,18 +140,18 @@ float ** MFCC::create_mel_fbank() {
   return mel_fbank;
 }
 
-void MFCC::mfcc_compute(const int16_t * data, uint16_t dec_bits, int8_t * mfcc_out) {
+void MFCC::mfcc_compute(const int16_t * audio_data, q7_t* mfcc_out) {
 
   int32_t i, j, bin;
 
   //TensorFlow way of normalizing .wav data to (-1,1)
-  for (i = 0; i < FRAME_LEN; i++) {
-    frame[i] = (float)data[i]/(1<<15); 
+  for (i = 0; i < frame_len; i++) {
+    frame[i] = (float)audio_data[i]/(1<<15); 
   }
   //Fill up remaining with zeros
-  memset(&frame[FRAME_LEN], 0, sizeof(float) * (frame_len_padded-FRAME_LEN));
+  memset(&frame[frame_len], 0, sizeof(float) * (frame_len_padded-frame_len));
 
-  for (i = 0; i < FRAME_LEN; i++) {
+  for (i = 0; i < frame_len; i++) {
     frame[i] *= window_func[i];
   }
 
@@ -188,14 +193,14 @@ void MFCC::mfcc_compute(const int16_t * data, uint16_t dec_bits, int8_t * mfcc_o
     mel_energies[bin] = logf(mel_energies[bin]);
 
   //Take DCT. Uses matrix mul.
-  for (i = 0; i < NUM_MFCC_COEFFS; i++) {
+  for (i = 0; i < num_mfcc_features; i++) {
     float sum = 0.0;
     for (j = 0; j < NUM_FBANK_BINS; j++) {
       sum += dct_matrix[i*NUM_FBANK_BINS+j] * mel_energies[j];
     }
 
-    //Input is Qx.dec_bits (from quantization step)
-    sum *= (0x1<<dec_bits);
+    //Input is Qx.mfcc_dec_bits (from quantization step)
+    sum *= (0x1<<mfcc_dec_bits);
     sum = round(sum); 
     if(sum >= 127)
       mfcc_out[i] = 127;
@@ -206,3 +211,4 @@ void MFCC::mfcc_compute(const int16_t * data, uint16_t dec_bits, int8_t * mfcc_o
   }
 
 }
+

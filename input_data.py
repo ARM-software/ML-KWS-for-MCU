@@ -486,6 +486,34 @@ class AudioProcessor(object):
       labels[i - offset, label_index] = 1
     return data, labels
 
+  def get_wav_files(self, how_many, offset, model_settings, mode):
+    """Return wav_file names and labels from train/val/test sets.
+    """
+    # Pick one of the partitions to choose samples from.
+    candidates = self.data_index[mode]
+    if how_many == -1:
+      sample_count = len(candidates)
+    else:
+      sample_count = max(0, min(how_many, len(candidates) - offset))
+    pick_deterministically = (mode != 'training')
+    wav_files = []
+    labels = np.zeros((sample_count, model_settings['label_count']))
+    for i in xrange(offset, offset + sample_count):
+      # Pick which audio sample to use.
+      if how_many == -1 or pick_deterministically:
+        sample_index = i
+      else:
+        sample_index = np.random.randint(len(candidates))
+      sample = candidates[sample_index]
+      if sample['label'] == SILENCE_LABEL:
+        wav_files.append('silence.wav')
+      else:
+        wav_files.append(sample['file'])
+      label_index = self.word_to_index[sample['label']]
+      labels[i - offset, label_index] = 1
+    return wav_files, labels
+
+
   def get_unprocessed_data(self, how_many, model_settings, mode):
     """Retrieve sample data for the given partition, with no transformations.
 
