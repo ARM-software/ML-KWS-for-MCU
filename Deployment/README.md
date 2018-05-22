@@ -52,4 +52,16 @@ mbed compile -m DISCO_F746NG -t GCC_ARM \
   --profile ../release_O3.json -j 8
 cp ./BUILD/DISCO_F746NG/GCC_ARM/kws_realtime_test.bin /media/<user>/DIS_F746NG/
 ```
+## Build an example on [FRDM-K64F](https://os.mbed.com/platforms/FRDM-K64F/) using gcc and make
+To build this example, clone CMSIS_5 repository and then `make`. This example is created by exporting a simple hello-world example from [mbed online compiler](https://os.mbed.com/compiler/) and editing the Makefile to incorporate the source files required for the keyword spotting example. 
+```bash
+cd Deployment
+# Clone CMSIS_5 repository (if not done already)
+git clone https://github.com/ARM-software/CMSIS_5.git
+cd Examples/simple_test_k64f_gcc
+make -j 8
+# copy binary to the device
+cp ./BUILD/simple_test_k64f_gcc.bin /media/<user>/DAPLINK/
+```
 **Note:** The examples provided use floating point operations for MFCC feature extraction, but it should be possible to convert them to fixed-point operations for deploying on microcontrollers that do not have dedicated floating point units.
+

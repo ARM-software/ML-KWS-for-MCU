@@ -1,0 +1,47 @@
+{
+    "name": "platform",
+    "config": {
+        "stdio-convert-newlines": {
+            "help": "Enable conversion to standard newlines on stdin/stdout/stderr",
+            "value": false
+        },
+
+        "stdio-convert-tty-newlines": {
+            "help": "Enable conversion to standard newlines on any tty FILE stream",
+            "value": false
+        },
+
+        "stdio-buffered-serial": {
+            "help": "Use UARTSerial driver to obtain buffered serial I/O on stdin/stdout/stderr. If false, unbuffered serial_getc and serial_putc are used directly.",
+            "value": false
+        },
+
+        "stdio-baud-rate": {
+            "help": "Baud rate for stdio",
+            "value": 9600
+        },
+
+        "stdio-flush-at-exit": {
+            "help": "Enable or disable the flush of standard I/O's at exit.",
+            "value": true
+        },
+
+        "default-serial-baud-rate": {
+            "help": "Default baud rate for a Serial or RawSerial instance (if not specified in the constructor)",
+            "value": 9600
+        },
+
+        "force-non-copyable-error": {
+            "help": "Force compile time error when a NonCopyable object is copied",
+            "value": false
+        }
+    },
+    "target_overrides": {
+        "EFM32": {
+            "stdio-baud-rate": 115200
+        },
+        "EFR32": {
+            "stdio-baud-rate": 115200
+        }
+    }
+}

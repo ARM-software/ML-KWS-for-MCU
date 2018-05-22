@@ -29,7 +29,6 @@ KWS::KWS()
 
 KWS::~KWS()
 {
-  delete nn;
   delete mfcc;
   delete mfcc_buffer;
   delete output;
