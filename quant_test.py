@@ -106,11 +106,14 @@ def run_quant_inference(wanted_words, sample_rate, clip_duration_ms,
     var_name = var_name.replace('/','_')
     var_name = var_name.replace(':','_')
     with open('weights.h','a') as f:
-        f.write('#define '+var_name+' {')
-    with open('weights.h','ab') as f:
-        np.savetxt(f,var_values.transpose(),fmt='%d',delimiter=', ',newline=', ')
+      f.write('#define '+var_name+' {')
+    if(len(var_values.shape)>2): #convolution layer weights
+      transposed_wts = np.transpose(var_values,(3,0,1,2))
+    else: #fully connected layer weights or biases of any layer
+      transposed_wts = np.transpose(var_values)
     with open('weights.h','a') as f:
-        f.write('}\n')
+      transposed_wts.tofile(f,sep=", ",format="%d")
+      f.write('}\n')
     # convert back original range but quantized to 8-bits or 256 levels
     var_values = var_values/(2**dec_bits)
     # update the weights in tensorflow graph for quantizing the activations
@@ -209,7 +212,7 @@ if __name__ == '__main__':
       '--data_url',
       type=str,
       # pylint: disable=line-too-long
-      default='http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz',
+      default='http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz',
       # pylint: enable=line-too-long
       help='Location of speech training data archive on the web.')
   parser.add_argument(

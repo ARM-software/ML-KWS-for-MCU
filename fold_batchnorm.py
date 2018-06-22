@@ -13,10 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Modifications Copyright 2017 Arm Inc. All Rights Reserved. 
-# Adapted from freeze.py to run inference on train/val/test dataset on the 
-# trained model in the form of checkpoint
-#          
+# Modifications Copyright 2017-2018 Arm Inc. All Rights Reserved. 
+# Adapted from freeze.py to fold the batch norm parameters into preceding layer
+# weights and biases
 #
 
 from __future__ import absolute_import
@@ -24,17 +23,17 @@ from __future__ import division
 from __future__ import print_function
 
 import argparse
-import os.path
 import sys
-
+import numpy as np
 import tensorflow as tf
-import input_data
 import models
+import input_data
 
+FLAGS = None
 
-def run_inference(wanted_words, sample_rate, clip_duration_ms,
-                           window_size_ms, window_stride_ms, dct_coefficient_count, 
-                           model_architecture, model_size_info):
+def fold_batch_norm(wanted_words, sample_rate, clip_duration_ms,
+                           window_size_ms, window_stride_ms,
+                           dct_coefficient_count, model_architecture, model_size_info):
   """Creates an audio model with the nodes needed for inference.
 
   Uses the supplied arguments to create a model, and inserts the input and
@@ -48,7 +47,6 @@ def run_inference(wanted_words, sample_rate, clip_duration_ms,
     window_stride_ms: How far apart time slices should be.
     dct_coefficient_count: Number of frequency bands to analyze.
     model_architecture: Name of the kind of model to generate.
-    model_size_info: Model dimensions : different lengths for different models
   """
   
   tf.logging.set_verbosity(tf.logging.INFO)
@@ -58,17 +56,9 @@ def run_inference(wanted_words, sample_rate, clip_duration_ms,
       len(words_list), sample_rate, clip_duration_ms, window_size_ms,
       window_stride_ms, dct_coefficient_count)
 
-  audio_processor = input_data.AudioProcessor(
-      FLAGS.data_url, FLAGS.data_dir, FLAGS.silence_percentage,
-      FLAGS.unknown_percentage,
-      FLAGS.wanted_words.split(','), FLAGS.validation_percentage,
-      FLAGS.testing_percentage, model_settings)
-  
-  label_count = model_settings['label_count']
-  fingerprint_size = model_settings['fingerprint_size']
-
+ 
   fingerprint_input = tf.placeholder(
-      tf.float32, [None, fingerprint_size], name='fingerprint_input')
+      tf.float32, [None, model_settings['fingerprint_size']], name='fingerprint_input')
 
   logits = models.create_model(
       fingerprint_input,
@@ -78,99 +68,72 @@ def run_inference(wanted_words, sample_rate, clip_duration_ms,
       is_training=False)
 
   ground_truth_input = tf.placeholder(
-      tf.float32, [None, label_count], name='groundtruth_input')
+      tf.float32, [None, model_settings['label_count']], name='groundtruth_input')
 
   predicted_indices = tf.argmax(logits, 1)
   expected_indices = tf.argmax(ground_truth_input, 1)
   correct_prediction = tf.equal(predicted_indices, expected_indices)
-  confusion_matrix = tf.confusion_matrix(
-      expected_indices, predicted_indices, num_classes=label_count)
+  confusion_matrix = tf.confusion_matrix(expected_indices, predicted_indices)
   evaluation_step = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
   models.load_variables_from_checkpoint(sess, FLAGS.checkpoint)
+  saver = tf.train.Saver(tf.global_variables())
 
-  # training set
-  set_size = audio_processor.set_size('training')
-  tf.logging.info('set_size=%d', set_size)
-  total_accuracy = 0
-  total_conf_matrix = None
-  for i in xrange(0, set_size, FLAGS.batch_size):
-    training_fingerprints, training_ground_truth = (
-        audio_processor.get_data(FLAGS.batch_size, i, model_settings, 0.0,
-                                 0.0, 0, 'training', sess))
-    training_accuracy, conf_matrix = sess.run(
-        [evaluation_step, confusion_matrix],
-        feed_dict={
-            fingerprint_input: training_fingerprints,
-            ground_truth_input: training_ground_truth,
-        })
-    batch_size = min(FLAGS.batch_size, set_size - i)
-    total_accuracy += (training_accuracy * batch_size) / set_size
-    if total_conf_matrix is None:
-      total_conf_matrix = conf_matrix
-    else:
-      total_conf_matrix += conf_matrix
-  tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
-  tf.logging.info('Training accuracy = %.2f%% (N=%d)' %
-                  (total_accuracy * 100, set_size))
+  tf.logging.info('Folding batch normalization layer parameters to preceding layer weights/biases')
+  #epsilon added to variance to avoid division by zero
+  epsilon  = 1e-3 #default epsilon for tf.slim.batch_norm 
+  #get batch_norm mean
+  mean_variables = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if 'moving_mean' in v.name]
+  for mean_var in mean_variables:
+    mean_name = mean_var.name
+    mean_values = sess.run(mean_var)
+    variance_name = mean_name.replace('moving_mean','moving_variance')
+    variance_var = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if v.name == variance_name][0]
+    variance_values = sess.run(variance_var)
+    beta_name = mean_name.replace('moving_mean','beta')
+    beta_var = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if v.name == beta_name][0]
+    beta_values = sess.run(beta_var)
+    bias_name = mean_name.replace('batch_norm/moving_mean','biases')
+    bias_var = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if v.name == bias_name][0]
+    bias_values = sess.run(bias_var)
+    wt_name = mean_name.replace('batch_norm/moving_mean:0','')
+    wt_var = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if (wt_name in v.name and 'weights' in v.name)][0]
+    wt_values = sess.run(wt_var)
+    wt_name = wt_var.name
 
-
-  # validation set
-  set_size = audio_processor.set_size('validation')
-  tf.logging.info('set_size=%d', set_size)
-  total_accuracy = 0
-  total_conf_matrix = None
-  for i in xrange(0, set_size, FLAGS.batch_size):
-    validation_fingerprints, validation_ground_truth = (
-        audio_processor.get_data(FLAGS.batch_size, i, model_settings, 0.0,
-                                 0.0, 0, 'validation', sess))
-    validation_accuracy, conf_matrix = sess.run(
-        [evaluation_step, confusion_matrix],
-        feed_dict={
-            fingerprint_input: validation_fingerprints,
-            ground_truth_input: validation_ground_truth,
-        })
-    batch_size = min(FLAGS.batch_size, set_size - i)
-    total_accuracy += (validation_accuracy * batch_size) / set_size
-    if total_conf_matrix is None:
-      total_conf_matrix = conf_matrix
+    #Update weights
+    tf.logging.info('Updating '+wt_name)
+    for l in range(wt_values.shape[3]):
+      for k in range(wt_values.shape[2]):
+        for j in range(wt_values.shape[1]):
+          for i in range(wt_values.shape[0]):
+            if "depthwise" in wt_name: #depthwise batchnorm params are ordered differently
+              wt_values[i][j][k][l] *= 1.0/np.sqrt(variance_values[k]+epsilon) #gamma (scale factor) is 1.0
+            else:
+              wt_values[i][j][k][l] *= 1.0/np.sqrt(variance_values[l]+epsilon) #gamma (scale factor) is 1.0
+    wt_values = sess.run(tf.assign(wt_var,wt_values))
+    #Update biases
+    tf.logging.info('Updating '+bias_name)
+    if "depthwise" in wt_name:
+      depth_dim = wt_values.shape[2]
     else:
-      total_conf_matrix += conf_matrix
-  tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
-  tf.logging.info('Validation accuracy = %.2f%% (N=%d)' %
-                  (total_accuracy * 100, set_size))
-  
-  # test set
-  set_size = audio_processor.set_size('testing')
-  tf.logging.info('set_size=%d', set_size)
-  total_accuracy = 0
-  total_conf_matrix = None
-  for i in xrange(0, set_size, FLAGS.batch_size):
-    test_fingerprints, test_ground_truth = audio_processor.get_data(
-        FLAGS.batch_size, i, model_settings, 0.0, 0.0, 0, 'testing', sess)
-    test_accuracy, conf_matrix = sess.run(
-        [evaluation_step, confusion_matrix],
-        feed_dict={
-            fingerprint_input: test_fingerprints,
-            ground_truth_input: test_ground_truth,
-        })
-    batch_size = min(FLAGS.batch_size, set_size - i)
-    total_accuracy += (test_accuracy * batch_size) / set_size
-    if total_conf_matrix is None:
-      total_conf_matrix = conf_matrix
-    else:
-      total_conf_matrix += conf_matrix
-  tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
-  tf.logging.info('Test accuracy = %.2f%% (N=%d)' % (total_accuracy * 100,
-                                                           set_size))
+      depth_dim = wt_values.shape[3]
+    for l in range(depth_dim):
+      bias_values[l] = (1.0*(bias_values[l]-mean_values[l])/np.sqrt(variance_values[l]+epsilon)) + beta_values[l]
+    bias_values = sess.run(tf.assign(bias_var,bias_values))
+    
+  #Write fused weights to ckpt file
+  tf.logging.info('Saving new checkpoint at '+FLAGS.checkpoint+'_bnfused')
+  saver.save(sess, FLAGS.checkpoint+'_bnfused')
 
 def main(_):
 
-  # Create the model, load weights from checkpoint and run on train/val/test
-  run_inference(FLAGS.wanted_words, FLAGS.sample_rate,
-      FLAGS.clip_duration_ms, FLAGS.window_size_ms,
-      FLAGS.window_stride_ms, FLAGS.dct_coefficient_count,
-      FLAGS.model_architecture, FLAGS.model_size_info)
-
+  # Create the model and load its weights.
+  fold_batch_norm(FLAGS.wanted_words, FLAGS.sample_rate,
+                         FLAGS.clip_duration_ms, FLAGS.window_size_ms,
+                         FLAGS.window_stride_ms, FLAGS.dct_coefficient_count,
+                         FLAGS.model_architecture, FLAGS.model_size_info)
+  
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
