@@ -47,7 +47,7 @@ void KWS_F746NG::start_kws()
   memset(audio_buffer_out, 0, audio_block_size*8);
 
   // May need to adjust volume to get better accuracy/user-experience 
-  audio.IN_SetVolume(85);
+  audio.IN_SetVolume(75);
 
   // Start Recording 
   audio.IN_Record((uint16_t*)audio_buffer_in, audio_block_size * 4);

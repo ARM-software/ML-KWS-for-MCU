@@ -76,7 +76,7 @@ void BSP_AUDIO_IN_TransferComplete_CallBack(void)
   arm_copy_q7((q7_t *)kws->audio_buffer_in + kws->audio_block_size*4, (q7_t *)kws->audio_buffer_out + kws->audio_block_size*4, kws->audio_block_size*4);
   if(kws->frame_len != kws->frame_shift) {
     //copy the last (frame_len - frame_shift) audio data to the start
-    arm_copy_q7((q7_t *)kws->audio_buffer, (q7_t *)(kws->audio_buffer)+2*(kws->audio_buffer_size-(kws->frame_len-kws->frame_shift)), 2*(kws->frame_len-kws->frame_shift));
+    arm_copy_q7((q7_t *)(kws->audio_buffer)+2*(kws->audio_buffer_size-(kws->frame_len-kws->frame_shift)), (q7_t *)kws->audio_buffer, 2*(kws->frame_len-kws->frame_shift));
   }
   // copy the new recording data 
   for (int i=0;i<kws->audio_block_size;i++) {
@@ -92,7 +92,7 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(void)
   arm_copy_q7((q7_t *)kws->audio_buffer_in, (q7_t *)kws->audio_buffer_out, kws->audio_block_size*4);
   if(kws->frame_len!=kws->frame_shift) {
     //copy the last (frame_len - frame_shift) audio data to the start
-    arm_copy_q7((q7_t *)kws->audio_buffer, (q7_t *)(kws->audio_buffer)+2*(kws->audio_buffer_size-(kws->frame_len-kws->frame_shift)), 2*(kws->frame_len-kws->frame_shift));
+    arm_copy_q7((q7_t *)(kws->audio_buffer)+2*(kws->audio_buffer_size-(kws->frame_len-kws->frame_shift)), (q7_t *)kws->audio_buffer, 2*(kws->frame_len-kws->frame_shift));
   }
   // copy the new recording data 
   for (int i=0;i<kws->audio_block_size;i++) {
