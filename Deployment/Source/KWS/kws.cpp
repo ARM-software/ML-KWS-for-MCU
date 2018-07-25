@@ -89,10 +89,10 @@ int KWS::get_top_class(q7_t* prediction)
 
 void KWS::average_predictions()
 {
-  //shift right old predictions 
-  arm_copy_q7((q7_t *)predictions, (q7_t *)(predictions+num_out_classes), (sliding_window_len-1)*num_out_classes);
-  //add new predictions
-  arm_copy_q7((q7_t *)output, (q7_t *)predictions, num_out_classes);
+  // shift the old predictions left
+  arm_copy_q7((q7_t *)(predictions+num_out_classes), (q7_t *)predictions, (sliding_window_len-1)*num_out_classes);
+  // add new predictions at the end
+  arm_copy_q7((q7_t *)output, (q7_t *)(predictions+(sliding_window_len-1)*num_out_classes), num_out_classes);
   //compute averages
   int sum;
   for(int j=0;j<num_out_classes;j++) {
