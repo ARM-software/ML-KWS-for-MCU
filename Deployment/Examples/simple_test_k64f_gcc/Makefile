@@ -401,6 +401,7 @@ OBJECTS += ./CMSIS_5/CMSIS/NN/Source/ConvolutionFunctions/arm_depthwise_separabl
 OBJECTS += ./CMSIS_5/CMSIS/NN/Source/ConvolutionFunctions/arm_depthwise_separable_conv_HWC_q7_nonsquare.o
 OBJECTS += ./CMSIS_5/CMSIS/NN/Source/ConvolutionFunctions/arm_nn_mat_mult_kernel_q7_q15.o
 OBJECTS += ./CMSIS_5/CMSIS/NN/Source/ConvolutionFunctions/arm_nn_mat_mult_kernel_q7_q15_reordered.o
+OBJECTS += ./CMSIS_5/CMSIS/NN/Source/ConvolutionFunctions/arm_convolve_HWC_q7_basic_nonsquare.o
 OBJECTS += ./CMSIS_5/CMSIS/NN/Source/FullyConnectedFunctions/arm_fully_connected_mat_q7_vec_q15.o
 OBJECTS += ./CMSIS_5/CMSIS/NN/Source/FullyConnectedFunctions/arm_fully_connected_mat_q7_vec_q15_opt.o
 OBJECTS += ./CMSIS_5/CMSIS/NN/Source/FullyConnectedFunctions/arm_fully_connected_q15.o
@@ -421,7 +422,6 @@ OBJECTS += ./Source/NN/nn.o
 OBJECTS += ./Source/NN/DNN/dnn.o
 OBJECTS += ./Source/NN/DS_CNN/ds_cnn.o
 OBJECTS += ./Source/local_NN/arm_avepool_q7_HWC_nonsquare.o
-OBJECTS += ./Source/local_NN/arm_convolve_HWC_q7_basic_nonsquare.o
 
 INCLUDE_PATHS += -I../
 INCLUDE_PATHS += -I../.
